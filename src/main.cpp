@@ -41,6 +41,9 @@ void wifiSetup()
   Serial.println("");
   Serial.println("WIFI Setup finished");
   Serial.printf("Connected to: %s\n, IP: %s\n", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
 }
 
 void deviceSetup()
