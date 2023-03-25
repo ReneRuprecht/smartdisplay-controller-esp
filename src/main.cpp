@@ -3,18 +3,24 @@
 #include <SoftwareSerial.h>
 // credentials example file inside includes directory
 #include "secrets.h"
+#include <IRsend.h>
 
 const char *WIFI_SSID = ssid_name;
 const char *WIFI_PASS = ssid_password;
 
 // device name
 #define ID_SMART "SmartDisplay"
+#define ID_HDMI1 "HDMI1"
+#define ID_HDMI2 "HDMI2"
 
 fauxmoESP fauxmo;
 
 // wemos -> rs232 pins
 const int rx = 12;
 const int tx = 13;
+
+int IrLed = D2;
+IRsend irsend(IrLed);
 
 // smartdisplay rs232 commands
 const byte SMART_ON[] = {0x35, 0x62, 0x30, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x31, 0x0D};
@@ -24,6 +30,7 @@ SoftwareSerial rs232(rx, tx);
 
 void wifiSetup()
 {
+
   Serial.println("WIFI Setup started");
 
   WiFi.mode(WIFI_STA);
@@ -52,6 +59,8 @@ void deviceSetup()
   Serial.println("Device Setup started");
 
   fauxmo.addDevice(ID_SMART);
+  fauxmo.addDevice(ID_HDMI1);
+  fauxmo.addDevice(ID_HDMI2);
 
   fauxmo.setPort(80);
 
@@ -68,6 +77,20 @@ void deviceSetup()
                            if (strcmp(device_name, ID_SMART) == 0)
                            {
                              rs232.write(SMART_ON, sizeof(SMART_ON));
+                           }
+                            else if (strcmp(device_name, ID_HDMI1) == 0)
+                           {
+                             for(int i =0;i<3;i++){
+                               uint32_t hdmi_1 = irsend.encodeNEC(0xFB047F80, 4);
+                                irsend.sendNEC(hdmi_1, 32);
+                                  delay(500);
+                             }
+                           }
+                             else if (strcmp(device_name, ID_HDMI2) == 0)
+                           {
+                               uint32_t hdmi_2 = irsend.encodeNEC(0xF6097F80, 9);
+                                irsend.sendNEC(hdmi_2, 32);
+                                                       delay(5000);
                            }
                          }
                          else
@@ -93,6 +116,7 @@ void setup()
 
   Serial.println("Configuration started");
 
+  irsend.begin();
   wifiSetup();
   deviceSetup();
 
